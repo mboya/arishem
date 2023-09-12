@@ -39,3 +39,6 @@
 
 /.env
 .idea
+
+config/environments/development.rb
+config/environments/test.rb
