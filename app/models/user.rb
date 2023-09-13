@@ -25,6 +25,8 @@ class User < ApplicationRecord
   validates :first_name, :last_name, :country_code, presence: true
   validates :phone, phone: true
 
+  has_one :wallet
+
   def self.authenticate(tone, password)
     user = User.find_for_authentication(email: tone) || User.find_for_authentication(phone: tone)
     user&.valid_password?(password) ? user : nil
