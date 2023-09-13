@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_09_11_165137) do
+ActiveRecord::Schema[7.0].define(version: 2023_09_12_165240) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -77,6 +77,22 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_11_165137) do
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 
+  create_table "wallets", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "user_id", null: false
+    t.integer "credit_in_cents", default: 0
+    t.integer "debit_in_cents", default: 0
+    t.integer "overdraft_in_cents", default: 0
+    t.string "uniq_code", default: -> { "md5((random())::text)" }, null: false
+    t.boolean "status", default: true
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_wallets_on_user_id"
+    t.check_constraint "credit_in_cents >= 0", name: "credit_in_cents"
+    t.check_constraint "debit_in_cents >= 0", name: "debit_in_cents"
+    t.check_constraint "overdraft_in_cents >= 0", name: "overdraft_in_cents"
+  end
+
   add_foreign_key "oauth_access_grants", "oauth_applications", column: "application_id"
   add_foreign_key "oauth_access_tokens", "oauth_applications", column: "application_id"
+  add_foreign_key "wallets", "users"
 end

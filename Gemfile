@@ -9,6 +9,7 @@ gem 'jsonapi-resources'
 gem 'pg', '~> 1.1'
 gem 'phonelib'
 gem 'puma', '~> 5.0'
+gem 'rack-attack'
 gem 'rack-cors'
 gem 'rails', '~> 7.0.7', '>= 7.0.7.2'
 
