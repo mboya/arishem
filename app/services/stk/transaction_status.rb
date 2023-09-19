@@ -1,24 +1,23 @@
 # frozen_string_literal: true
-require 'stk/access_token'
-require 'stk/helpers/security_credential'
 
 module Stk
-  class Balance
+  class TransactionStatus
 
     class << self
-      def check_balance(hash = {})
-        new(hash['key'], hash['secret'], hash['queue'], hash['result']).send_request
+      def status(code)
+        new(code).send_request
       end
     end
 
-    attr_reader :token, :key, :secret, :queue_url, :result_url
+    attr_reader :code, :key, :secret, :token, :res, :result_url, :queue_url
 
-    def initialize(key, secret, queue_url, result_url)
+    def initialize(code)
+      @key = ENV['key']
+      @secret = ENV['secret']
       @token = Stk::AccessToken.call(key, secret)
-      @queue_url = queue_url.nil? ? ENV['QueueTimeOutURL'] : queue_url
-      @key = key.nil? ? ENV['key'] : key
-      @secret = secret.nil? ? ENV['secret'] : secret
-      @result_url = result_url.nil? ? ENV['ResultURL'] : result_url
+      @code = code
+      @result_url = ENV['ResultURL']
+      @queue_url = ENV['QueueTimeOutURL']
     end
 
     def send_request
@@ -29,7 +28,7 @@ module Stk
     private
 
     def uri
-      "#{ENV['base_url']}#{ENV['account_balance_url']}"
+      "#{ENV['base_url']}#{ENV['transaction_status_uri']}"
     end
 
     def _headers
@@ -43,17 +42,20 @@ module Stk
       {
         Initiator: ENV['InitiatorName'],
         SecurityCredential: _security_credentials,
-        CommandID: 'AccountBalance',
+        CommandID: 'TransactionStatusQuery',
+        TransactionID: 'OEI2AK4Q16',
         PartyA: ENV['PartyA'],
-        IdentifierType: '4',
-        Remarks: 'ok',
+        IdentifierType: 4,
+        ResultURL: result_url,
         QueueTimeOutURL: queue_url,
-        ResultURL: result_url
+        Remarks: 'ok',
+        Occassion: 'ok'
       }.to_json
     end
 
     def _security_credentials
       Stk::Helpers::SecurityCredential.check_sec_cred
     end
+
   end
 end

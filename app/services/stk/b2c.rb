@@ -23,7 +23,6 @@ module Stk
 
     def send_request
       response = HTTParty.post(uri, headers: _headers, body: _body)
-      puts _body
       JSON.parse(response.body)
     end
 
