@@ -16,11 +16,7 @@ class UserResource < JSONAPI::Resource
   end
 
   def wallet
-    {
-      credit: '0'.to_i ||= @model.wallet.credit_in_cents,
-      debit: '0'.to_i ||= @model&.wallet&.debit_in_cents,
-      overdraft: '0'.to_i ||= @model&.wallet&.overdraft_in_cents,
-    }
+    @model.purse
   end
 
   def create_wallet
@@ -33,7 +29,15 @@ class UserResource < JSONAPI::Resource
   private
 
   def credit_joining_bonus(wallet)
-    wallet.update({ credit_in_cents: 50 * 100 }) # crediting kes 50 to user account for joining platform
-    # send notification to client
+    # going to credit kes 50 into the new user account
+    # create a wallet credit transaction
+
+    WalletTransaction.create({
+                               wallet: wallet,
+                               amount_in_cents: (50 * 100),
+                               txn_type: 'credit',
+                               phone: @model.phone
+                             })
+    CreditJob.perform_now(wallet.id)
   end
 end

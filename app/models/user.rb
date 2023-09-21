@@ -31,4 +31,12 @@ class User < ApplicationRecord
     user = User.find_for_authentication(email: tone) || User.find_for_authentication(phone: tone)
     user&.valid_password?(password) ? user : nil
   end
+
+  def purse
+    {
+      credit: wallet&.credit_in_cents,
+      debit: wallet&.debit_in_cents,
+      overdraft: wallet&.overdraft_in_cents
+    }
+  end
 end
