@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class PesaController < ApplicationController
+  # noinspection RailsParamDefResolve
   skip_before_action :doorkeeper_authorize!
 
   def validate
@@ -42,6 +43,13 @@ class PesaController < ApplicationController
   def pesa_token
     token = Stk::AccessToken.call(ENV['key'], ENV['secret'])
     render json: { token: token }
+  end
+
+  def send_money
+    current_wallet = current_user.wallet_id
+    SendMoney.send_funds(params[:amount], params[:recipient], current_wallet)
+
+    render json: { message: 'request received for processing, do wait ...' }, status: :ok
   end
 
   private
