@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_09_12_165240) do
+ActiveRecord::Schema[7.0].define(version: 2023_09_19_164632) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -77,6 +77,20 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_12_165240) do
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 
+  create_table "wallet_transactions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "wallet_id", null: false
+    t.integer "amount_in_cents"
+    t.string "txn_type"
+    t.string "phone"
+    t.jsonb "result"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["phone"], name: "index_wallet_transactions_on_phone"
+    t.index ["result"], name: "index_wallet_transactions_on_result"
+    t.index ["txn_type"], name: "index_wallet_transactions_on_txn_type"
+    t.index ["wallet_id"], name: "index_wallet_transactions_on_wallet_id"
+  end
+
   create_table "wallets", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "user_id", null: false
     t.integer "credit_in_cents", default: 0
@@ -94,5 +108,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_12_165240) do
 
   add_foreign_key "oauth_access_grants", "oauth_applications", column: "application_id"
   add_foreign_key "oauth_access_tokens", "oauth_applications", column: "application_id"
+  add_foreign_key "wallet_transactions", "wallets"
   add_foreign_key "wallets", "users"
 end
