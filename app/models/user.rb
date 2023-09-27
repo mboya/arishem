@@ -27,6 +27,8 @@ class User < ApplicationRecord
 
   has_one :wallet
 
+  after_commit :create_wallet
+
   def self.authenticate(tone, password)
     user = User.find_for_authentication(email: tone) || User.find_for_authentication(phone: tone)
     user&.valid_password?(password) ? user : nil
@@ -38,5 +40,27 @@ class User < ApplicationRecord
       debit: wallet&.debit_in_cents,
       overdraft: wallet&.overdraft_in_cents
     }
+  end
+
+  private
+
+  def create_wallet
+    wallet = Wallet.create({
+                             user: self
+                           })
+    credit_joining_bonus(wallet)
+  end
+
+  def credit_joining_bonus(wallet)
+    # going to credit kes 50 into the new user account
+    # create a wallet credit transaction
+
+    WalletTransaction.create({
+                               wallet: wallet,
+                               amount_in_cents: (50 * 100),
+                               txn_type: 'credit',
+                               phone: @model.phone
+                             })
+    CreditJob.perform_now(wallet.id)
   end
 end
