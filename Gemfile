@@ -16,6 +16,10 @@ gem 'rack-cors'
 gem 'rails', '~> 7.0.7', '>= 7.0.7.2'
 gem 'redis'
 
+group :test do
+  gem 'webmock'
+end
+
 group :development, :test do
   gem 'annotate'
   gem 'debug', platforms: %i[mri mingw x64_mingw]
