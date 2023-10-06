@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# Pesa Controller
 class PesaController < ApplicationController
   # noinspection RailsParamDefResolve
   skip_before_action :doorkeeper_authorize!
@@ -21,23 +22,10 @@ class PesaController < ApplicationController
   end
 
   def call_back
-    amount, phonenumber = nil
-
     return unless params[:Body][:stkCallback][:CallbackMetadata].present?
 
-    params[:Body][:stkCallback][:CallbackMetadata][:Item].each do |item|
-      case item[:Name].downcase
-      when 'amount'
-        amount = item[:Value]
-      when 'phonenumber'
-        phonenumber = item[:Value]
-      end
-    end
-
-    wallet_id = find_wallet(phonenumber)
-    credit_wallet_txn(wallet_id, amount, phonenumber, params)
-
-    render json: 'received'
+    Receipt.receive_funds(params)
+    render json: :ok
   end
 
   def pesa_token
@@ -50,22 +38,5 @@ class PesaController < ApplicationController
     SendMoney.send_funds(params[:amount], params[:recipient], current_wallet)
 
     render json: { message: 'request received for processing, do wait ...' }, status: :ok
-  end
-
-  private
-
-  def find_wallet(phonenumber)
-    User.find_by(phone: phonenumber).wallet.id
-  end
-
-  def credit_wallet_txn(wallet_id, amount, phonenumber, params)
-    WalletTransaction.create({
-                               wallet_id: wallet_id,
-                               amount_in_cents: (amount.to_i * 100),
-                               txn_type: 'credit',
-                               phone: phonenumber,
-                               result: params
-                             })
-    CreditJob.perform_now(wallet.id)
   end
 end
